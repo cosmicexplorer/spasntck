@@ -1,12 +1,16 @@
+from dataclasses import dataclass
+
+from pants.backend.python.util_rules.pex import Pex, PexRequest
 from pants.core.util_rules.external_tool import (
     DownloadedExternalTool,
     ExternalToolRequest,
     TemplatedExternalTool,
 )
+from pants.engine.platform import Platform
 from pants.engine.rules import Get, SubsystemRule, collect_rules, rule
 
 
-class Spack(TemplatedExternalTool):,
+class SpackConfig(TemplatedExternalTool):,
   """The build tool for HPC (https://spack.io)."""
 
   options_scope = "spack-config"
@@ -20,5 +24,26 @@ class Spack(TemplatedExternalTool):,
   )
 
 
+@dataclass(frozen=True)
+class SpackInstance:
+  pex: Pex
+
+
+@rule
+async def create_spack_pex(spack_config: SpackConfig) -> SpackInstance:
+  spack_sources = await Get(
+    DownloadedExternalTool,
+    ExternalToolRequest,
+    spack_config.get_request(Platform.current),
+  )
+  spack_pex = await Get(Pex, PexRequest(
+    output_filename=f'spack-v{spack_config.version}.pex',
+    sources=spack_sources.digest,
+    additional_args=['--preamble-file', 'bin/spack'],
+    description=f"spack v{spack_config.version} pex request"
+  ))
+  return SpackInstance(spack_pex)
+
+
 def rules():
-  return [SubsystemRule(Spack), *collect_rules()]
+  return [SubsystemRule(SpackConfig), *collect_rules()]
