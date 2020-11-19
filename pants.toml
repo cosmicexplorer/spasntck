@@ -10,3 +10,8 @@ backend_packages.add = [
   "pants.backend.python.typecheck.mypy",
   "pants.backend.python.mixed_interpreter_constraints",
 ]
+
+[python-setup]
+interpreter_constraints = [
+  "CPython>=3.8",
+]
