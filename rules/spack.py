@@ -45,5 +45,14 @@ async def create_spack_pex(spack_config: SpackConfig) -> SpackInstance:
   return SpackInstance(spack_pex)
 
 
+@dataclass(frozen=True)
+class SpackWithClingo:
+  pex: Pex
+
+
+# @rule
+# async def
+
+
 def rules():
   return [SubsystemRule(SpackConfig), *collect_rules()]
